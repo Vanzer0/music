@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pengu-Tine Happy Dance Party 🎉</title>
+  <title>Pengu-Tine Happy Dance Party 🎉🐧🐘🐰</title>
   <style>
     body, html {
       margin: 0;
@@ -11,27 +11,44 @@
       height: 100%;
       overflow: hidden;
       background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
     }
     canvas {
       display: block;
     }
     #title {
       position: absolute;
-      top: 20px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      color: white;
-      font-size: 3.2rem;
-      text-shadow: 3px 3px 0 #ff6b6b, -3px -3px 0 #4ecdc4;
+      color: #fff;
+      font-size: 3.5rem;
+      text-shadow: 4px 4px 0 #ff6b6b, -4px -4px 0 #4ecdc4;
       pointer-events: none;
       z-index: 10;
       white-space: nowrap;
-      animation: bounce 2s infinite;
+      animation: bounce 2.2s infinite;
     }
     @keyframes bounce {
       0%, 100% { transform: translateX(-50%) translateY(0); }
-      50%      { transform: translateX(-50%) translateY(-15px); }
+      50%      { transform: translateX(-50%) translateY(-18px); }
+    }
+    #lyrics {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 2.4rem;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 3px 3px 6px #000, -3px -3px 6px #000;
+      pointer-events: none;
+      z-index: 10;
+      max-width: 90%;
+      line-height: 1.3;
+      opacity: 0;
+      transition: opacity 0.6s;
     }
     #info {
       position: absolute;
@@ -39,10 +56,10 @@
       left: 50%;
       transform: translateX(-50%);
       color: white;
-      background: rgba(0,0,0,0.4);
-      padding: 8px 16px;
+      background: rgba(0,0,0,0.5);
+      padding: 8px 20px;
       border-radius: 30px;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       z-index: 10;
     }
   </style>
@@ -50,6 +67,7 @@
 <body>
 
 <div id="title">Happy Animal Party! 🐧🐘🐰</div>
+<div id="lyrics"></div>
 <div id="info">Made with ❤️ by PENGU-TINE</div>
 
 <canvas id="c"></canvas>
@@ -58,6 +76,7 @@
 // ────────────────────────────────────────────────
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+const lyricsDiv = document.getElementById('lyrics');
 
 let w, h;
 function resize() {
@@ -70,214 +89,186 @@ resize();
 // ─── Audio ───────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// Main melody oscillator
-const osc = audioCtx.createOscillator();
-const gain = audioCtx.createGain();
-osc.connect(gain);
-gain.connect(audioCtx.destination);
-osc.type = 'square';
-gain.gain.value = 0.12;
+// Melody (square wave chiptune)
+const melodyOsc = audioCtx.createOscillator();
+const melodyGain = audioCtx.createGain();
+melodyOsc.connect(melodyGain);
+melodyGain.connect(audioCtx.destination);
+melodyOsc.type = 'square';
+melodyGain.gain.value = 0.10;
 
 const scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C major
 let noteIdx = 0;
 
 function playMelody() {
-  osc.frequency.setValueAtTime(
-    scale[noteIdx % scale.length] * (0.98 + Math.random() * 0.04),
-    audioCtx.currentTime
-  );
+  melodyOsc.frequency.setValueAtTime(scale[noteIdx % scale.length] * (0.97 + Math.random()*0.06), audioCtx.currentTime);
   noteIdx++;
 }
-osc.start();
+melodyOsc.start();
 setInterval(playMelody, 320);
 
-// Kick drum simulation
+// Kick drum
 function kick() {
-  const oscK = audioCtx.createOscillator();
-  const gainK = audioCtx.createGain();
-  oscK.connect(gainK);
-  gainK.connect(audioCtx.destination);
-  oscK.type = 'sine';
-  oscK.frequency.setValueAtTime(120, audioCtx.currentTime);
-  oscK.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
-  gainK.gain.setValueAtTime(0.6, audioCtx.currentTime);
-  gainK.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
-  oscK.start();
-  oscK.stop(audioCtx.currentTime + 0.2);
+  const kOsc = audioCtx.createOscillator();
+  const kGain = audioCtx.createGain();
+  kOsc.connect(kGain); kGain.connect(audioCtx.destination);
+  kOsc.type = 'sine';
+  kOsc.frequency.setValueAtTime(140, audioCtx.currentTime);
+  kOsc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.11);
+  kGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+  kGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+  kOsc.start();
+  kOsc.stop(audioCtx.currentTime + 0.18);
 }
 setInterval(kick, 640);
 
-// ─── Characters ───────────────────────────────────
+// Singing voice (sawtooth + slight vibrato + formant-like)
+function singWord(word, durationMs = 800) {
+  const now = audioCtx.currentTime;
+  const voiceOsc = audioCtx.createOscillator();
+  const voiceGain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  voiceOsc.connect(filter);
+  filter.connect(voiceGain);
+  voiceGain.connect(audioCtx.destination);
+
+  voiceOsc.type = 'sawtooth';
+  filter.type = 'lowpass';
+  filter.frequency.value = 1200;
+  voiceGain.gain.setValueAtTime(0.25, now);
+  voiceGain.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
+
+  // Simple pitch for singing (higher for kid voice)
+  const baseFreq = 440; // A4-ish, kid-like
+  voiceOsc.frequency.setValueAtTime(baseFreq, now);
+
+  // Vibrato
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.value = 5;
+  lfoGain.gain.value = 12;
+  lfo.connect(lfoGain);
+  lfoGain.connect(voiceOsc.frequency);
+  lfo.start(now);
+  lfo.stop(now + durationMs/1000);
+
+  voiceOsc.start(now);
+  voiceOsc.stop(now + durationMs/1000 + 0.05);
+}
+
+// Lyrics sequence (repeats every ~20-25 sec)
+const lyricsParts = [
+  { text: "Penguin waddles, left and right", dur: 1200 },
+  { text: "Elephant swings with all his might", dur: 1200 },
+  { text: "Rabbit hops up high in the air", dur: 1200 },
+  { text: "Come and dance without a care!", dur: 1400 },
+
+  { text: "Party party, animals dance!", dur: 1000 },
+  { text: "Shake it, wiggle, take a chance!", dur: 1000 },
+  { text: "Friends forever, laugh and play", dur: 1000 },
+  { text: "Happy happy all the day!", dur: 1400 },
+
+  { text: "Waddle waddle, swing swing swing!", dur: 1000 },
+  { text: "Hop hop hop, let's all sing!", dur: 1000 },
+  { text: "Party party, animals dance!", dur: 1400 }
+];
+
+let lyricIdx = 0;
+let lyricTimer;
+
+function showNextLyric() {
+  const part = lyricsParts[lyricIdx];
+  lyricsDiv.textContent = part.text;
+  lyricsDiv.style.opacity = 1;
+
+  // "Sing" the line
+  singWord(part.text, part.dur);
+
+  setTimeout(() => {
+    lyricsDiv.style.opacity = 0;
+  }, part.dur - 400);
+
+  lyricIdx = (lyricIdx + 1) % lyricsParts.length;
+}
+
+setTimeout(() => {
+  showNextLyric();
+  lyricTimer = setInterval(showNextLyric, 4800); // roughly matches melody + kick loop
+}, 1200);
+
+// ─── Characters (same as before, small tweaks for more bounce) ───────────────
 const characters = [
   // Penguin
-  {
-    x: w*0.25, y: h*0.6, color: '#000', belly: '#fff',
-    update(t) {
-      this.x = w*0.25 + Math.sin(t/400)*60;
-      this.angle = Math.sin(t/150)*0.4;
-    },
+  { x: w*0.25, y: h*0.62, color: '#000', belly: '#fff',
+    update(t) { this.x = w*0.25 + Math.sin(t/380)*70; this.angle = Math.sin(t/140)*0.45; },
     draw() {
-      ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.angle);
-
-      // body
-      ctx.fillStyle = this.color;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 50, 70, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // belly
-      ctx.fillStyle = this.belly;
-      ctx.beginPath();
-      ctx.ellipse(0, 15, 38, 55, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // eyes
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(-18, -35, 8, 0, Math.PI*2);
-      ctx.arc( 18, -35, 8, 0, Math.PI*2);
-      ctx.fill();
-
-      // beak
-      ctx.fillStyle = '#ff9f1c';
-      ctx.beginPath();
-      ctx.moveTo(-12, -15);
-      ctx.lineTo( 12, -15);
-      ctx.lineTo(  0,  10);
-      ctx.closePath();
-      ctx.fill();
-
+      ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+      ctx.fillStyle = this.color; ctx.beginPath(); ctx.ellipse(0,0,52,72,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = this.belly; ctx.beginPath(); ctx.ellipse(0,15,40,57,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(-19,-36,9,0,Math.PI*2); ctx.arc(19,-36,9,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ff9f1c'; ctx.beginPath(); ctx.moveTo(-13,-16); ctx.lineTo(13,-16); ctx.lineTo(0,12); ctx.fill();
       ctx.restore();
     }
   },
-
   // Elephant
-  {
-    x: w*0.5, y: h*0.55, color: '#5c5c5c',
-    trunkOffset: 0,
-    update(t) {
-      this.y = h*0.55 + Math.sin(t/700)*12;
-      this.trunkOffset = Math.sin(t/300)*25;
-    },
+  { x: w*0.5, y: h*0.57, color: '#5c5c5c', trunkOffset: 0,
+    update(t) { this.y = h*0.57 + Math.sin(t/650)*15; this.trunkOffset = Math.sin(t/280)*30; },
     draw() {
-      ctx.save();
-      ctx.translate(this.x, this.y);
-
-      // body
-      ctx.fillStyle = this.color;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 80, 55, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // head
-      ctx.beginPath();
-      ctx.ellipse(-45, -40, 38, 28, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // ear
-      ctx.beginPath();
-      ctx.ellipse(-75, -35, 35, 25, Math.PI/5, 0, Math.PI*2);
-      ctx.fill();
-
-      // eye
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(-65, -45, 8, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(-65, -45, 4, 0, Math.PI*2);
-      ctx.fill();
-
-      // trunk
-      ctx.strokeStyle = this.color;
-      ctx.lineWidth = 18;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-80, -25);
-      ctx.quadraticCurveTo(-110 + this.trunkOffset, -20, -95 + this.trunkOffset*0.6, 30);
-      ctx.stroke();
-
+      ctx.save(); ctx.translate(this.x, this.y);
+      ctx.fillStyle = this.color; ctx.beginPath(); ctx.ellipse(0,0,82,57,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-47,-42,40,30,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-77,-37,37,27,Math.PI/5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-67,-47,9,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(-67,-47,4,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = this.color; ctx.lineWidth = 19; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-82,-27); ctx.quadraticCurveTo(-115 + this.trunkOffset, -22, -98 + this.trunkOffset*0.6, 35); ctx.stroke();
       ctx.restore();
     }
   },
-
   // Rabbit
-  {
-    x: w*0.75, baseY: h*0.65, jump: 0, jumpDir: 1,
-    update(t) {
-      this.jump += this.jumpDir * 5.5;
-      if (this.jump > 40 || this.jump < -5) this.jumpDir *= -1;
-    },
+  { x: w*0.75, baseY: h*0.67, jump: 0, jumpDir: 1,
+    update(t) { this.jump += this.jumpDir * 6; if (this.jump > 45 || this.jump < -8) this.jumpDir *= -1; },
     draw() {
-      ctx.save();
-      ctx.translate(this.x, this.baseY - this.jump);
-
-      // body
-      ctx.fillStyle = '#ff99cc';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 38, 65, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // ears
-      ctx.beginPath();
-      ctx.ellipse(-18, -75, 12, 45, Math.PI/5, 0, Math.PI*2);
-      ctx.ellipse( 18, -75, 12, 45, -Math.PI/5, 0, Math.PI*2);
-      ctx.fill();
-
-      // inner ears
-      ctx.fillStyle = '#ff6699';
-      ctx.beginPath();
-      ctx.ellipse(-18, -75, 8, 35, Math.PI/5, 0, Math.PI*2);
-      ctx.ellipse( 18, -75, 8, 35, -Math.PI/5, 0, Math.PI*2);
-      ctx.fill();
-
-      // eyes
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(-14, -25, 7, 0, Math.PI*2);
-      ctx.arc( 14, -25, 7, 0, Math.PI*2);
-      ctx.fill();
-
+      ctx.save(); ctx.translate(this.x, this.baseY - this.jump);
+      ctx.fillStyle = '#ff99cc'; ctx.beginPath(); ctx.ellipse(0,0,40,67,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-19,-77,13,47,Math.PI/5,0,Math.PI*2);
+      ctx.ellipse(19,-77,13,47,-Math.PI/5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ff6699'; ctx.beginPath(); ctx.ellipse(-19,-77,9,37,Math.PI/5,0,Math.PI*2);
+      ctx.ellipse(19,-77,9,37,-Math.PI/5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(-15,-27,8,0,Math.PI*2); ctx.arc(15,-27,8,0,Math.PI*2); ctx.fill();
       ctx.restore();
     }
   }
 ];
 
-// ─── Animation loop ────────────────────────────────
+// ─── Animation ─────────────────────────────────────
 let time = 0;
 function loop() {
   time += 16;
-
   ctx.clearRect(0, 0, w, h);
 
-  // sparkling background dots
-  ctx.globalAlpha = 0.7;
-  for (let i = 0; i < 30; i++) {
-    const x = (time*0.03 + i*123) % w;
-    const y = (time*0.05 + i*77) % h;
-    ctx.fillStyle = `hsl(${(time + i*30)%360}, 100%, 65%)`;
-    ctx.beginPath();
-    ctx.arc(x, y, 4 + Math.sin(time/800 + i)*3, 0, Math.PI*2);
-    ctx.fill();
+  // Sparkles
+  ctx.globalAlpha = 0.75;
+  for (let i = 0; i < 35; i++) {
+    const x = (time*0.04 + i*111) % w;
+    const y = (time*0.06 + i*89) % h;
+    ctx.fillStyle = `hsl(${(time + i*40)%360}, 100%, 70%)`;
+    ctx.beginPath(); ctx.arc(x, y, 5 + Math.sin(time/700 + i)*4, 0, Math.PI*2); ctx.fill();
   }
   ctx.globalAlpha = 1;
 
-  characters.forEach(char => {
-    char.update(time);
-    char.draw();
-  });
+  characters.forEach(c => { c.update(time); c.draw(); });
 
   requestAnimationFrame(loop);
 }
 loop();
 
-// Optional: stop sound after 2 minutes (kids have short attention!)
+// Stop after ~2.5 min
 setTimeout(() => {
-  osc.stop();
-}, 120_000);
+  melodyOsc.stop();
+  clearInterval(lyricTimer);
+}, 150_000);
 
 </script>
 </body>
