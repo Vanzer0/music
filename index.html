@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Little Rocket Ship Adventure - Fun Kids Music Video 🚀</title>
+  <title>Little Rocket Ship - Full Adventure Music Video 🚀</title>
   <style>
     body, html {
       margin: 0;
@@ -28,7 +28,7 @@
       font-size: 4.5rem;
       margin: 0 2rem 3rem;
       text-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
-      transition: color 0.3s;
+      transition: all 0.4s;
     }
 
     button {
@@ -73,24 +73,25 @@
       position: absolute;
       top: 4rem;
       right: 6rem;
-      font-size: 8rem;
+      font-size: 9rem;
       opacity: 0.9;
     }
 
     .bounce-rocket {
       position: absolute;
-      top: 10rem;
+      top: 15rem;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 8rem;
+      font-size: 10rem;
       animation: bounce 2s infinite;
+      transition: all 5s;
     }
 
     .spin-planet {
       position: absolute;
       bottom: 8rem;
       left: 8rem;
-      font-size: 8rem;
+      font-size: 9rem;
       animation: spin 30s linear infinite;
     }
 
@@ -100,13 +101,37 @@
     }
 
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-40px); }
+      0%, 100% { transform: translateY(0) translateX(-50%); }
+      50% { transform: translateY(-50px) translateX(-50%); }
     }
 
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      10%, 30%, 50%, 70%, 90% { transform: translate(-20px, 0); }
+      20%, 40%, 60%, 80% { transform: translate(20px, 0); }
+    }
+
+    .shake {
+      animation: shake 0.8s ease-in-out;
+    }
+
+    @keyframes shoot {
+      0% {
+        left: -100px;
+        opacity: 0;
+        transform: rotate(-30deg);
+      }
+      10% { opacity: 1; }
+      100% {
+        left: calc(100% + 100px);
+        opacity: 0;
+        transform: rotate(30deg) scale(0.5);
+      }
     }
   </style>
 </head>
@@ -115,7 +140,7 @@
   <div class="planet">🪐</div>
 
   <div id="container">
-    <button id="startBtn">Start the Rocket Adventure! 🚀</button>
+    <button id="startBtn">Launch the Rocket Adventure! 🚀</button>
     <h1 id="lyric"></h1>
     <button id="stopBtn">Stop</button>
   </div>
@@ -126,44 +151,44 @@
       { text: "Flying to the big big moon.", start: 7 },
       { text: "Stars are twinkling all around,", start: 14 },
       { text: "Little rocket safe and sound.", start: 21 },
-      { text: "Countdown five four three two one,", start: 28 },
-      { text: "Blast off now the fun's begun!", start: 35 }
+      { text: "Countdown...", start: 28 },
+      { text: "5", start: 29 },
+      { text: "4", start: 30 },
+      { text: "3", start: 31 },
+      { text: "2", start: 32 },
+      { text: "1", start: 33 },
+      { text: "Blast off!!", start: 34 },
+      { text: "Now the fun's begun! 🚀", start: 35 }
     ];
 
     const noteFreqs = [
-      // Little rocket zoom zoom zoom (ascending)
       261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,
-      // Flying to the big big moon (descending)
       523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66,
-      // Stars are twinkling all around
       392.00, 392.00, 440.00, 440.00, 392.00, 440.00, 493.88,
-      // Little rocket safe and sound
       440.00, 440.00, 392.00, 392.00, 349.23, 349.23, 329.63,
-      // Countdown five four three two one (descending)
-      493.88, 440.00, 392.00, 349.23, 329.63, 293.66, 261.63,
-      // Blast off now the fun's begun! (ascending high)
+      587.33, 523.25, 493.88, 440.00, 392.00, 349.23, 329.63,
       261.63, 329.63, 392.00, 440.00, 493.88, 523.25, 587.33
     ];
 
     const noteDur = 0.6;
-    const starEmojis = ['⭐', '🌟', '✨', '💫', '🪐', '🌠', '🚀'];
+    const starEmojis = ['⭐', '🌟', '✨', '💫', '🪐', '🌠', '🚀', '👽', '🛸'];
 
     let audioCtx = null;
     let startTime = 0;
     let animationId = null;
     let hue = 0;
+    let blasted = false;
 
     const lyricEl = document.getElementById('lyric');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
 
-    // Generate twinkling space objects
     function createStars() {
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 120; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
-        star.style.fontSize = Math.random() > 0.5 ? '3rem' : '2rem';
+        star.style.fontSize = Math.random() > 0.5 ? '3.5rem' : '2rem';
         star.style.top = Math.random() * 100 + '%';
         star.style.left = Math.random() * 100 + '%';
         star.style.animation = `twinkle ${3 + Math.random() * 3}s ease-in-out infinite`;
@@ -172,16 +197,48 @@
       }
     }
 
+    function createShootingStar() {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.textContent = Math.random() > 0.5 ? '🌠' : '✨';
+      star.style.fontSize = `${4 + Math.random() * 4}rem`;
+      star.style.position = 'absolute';
+      star.style.left = '-100px';
+      star.style.top = `${Math.random() * 80 + 10}%`;
+      star.style.animation = `shoot ${1 + Math.random() * 1}s linear forwards`;
+      document.body.appendChild(star);
+      setTimeout(() => star && star.remove(), 3000);
+    }
+
     function playNote(freq, dur, when) {
-      const osc = audioCtx.createOscillator();
+      const osc1 = audioCtx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc1.frequency.value = freq;
+
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 2;
+
       const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.value = 0.3;
-      osc.connect(gain);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.start(when);
-      osc.stop(when + dur);
+
+      // Envelope for smoother, richer sound
+      const attack = 0.05;
+      const decay = 0.1;
+      const sustain = 0.2;
+      gain.gain.setValueAtTime(0.01, when);
+      gain.gain.linearRampToValueAtTime(0.35, when + attack);
+      gain.g minusculeToValueAtTime(sustain, when + attack + decay);
+      gain.gain.linearRampToValueAtTime(sustain, when + dur * 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.01, when + dur);
+
+      osc1.start(when);
+      osc1.stop(when + dur + 0.2);
+      osc2.start(when);
+      osc2.stop(when + dur + 0.2);
     }
 
     function startMusic() {
@@ -190,6 +247,7 @@
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       audioCtx.resume().then(() => {
         startTime = audioCtx.currentTime;
+        blasted = false;
 
         let time = audioCtx.currentTime;
         noteFreqs.forEach(freq => {
@@ -201,7 +259,7 @@
         stopBtn.style.display = 'block';
         lyricEl.textContent = lyrics[0].text;
 
-        // Add bouncing rocket and spinning planet
+        // Add rocket and planet
         const rocket = document.createElement('div');
         rocket.className = 'bounce-rocket';
         rocket.textContent = '🚀';
@@ -209,7 +267,7 @@
 
         const spinPlanet = document.createElement('div');
         spinPlanet.className = 'spin-planet';
-        spinPlanet.textContent = '🪐';
+        spinPlanet.textContent = '🌍';
         document.body.appendChild(spinPlanet);
 
         animate();
@@ -228,11 +286,45 @@
           break;
         }
       }
-      lyricEl.textContent = currentLyric || 'Zooming through space! 🚀';
+      lyricEl.textContent = currentLyric || 'Zoom through space! 🚀';
 
-      // Rainbow color
+      // Dynamic styling for countdown and blast off
+      const trimmed = currentLyric.trim();
+      if (['5','4','3','2','1'].includes(trimmed)) {
+        lyricEl.style.fontSize = '15rem';
+        lyricEl.style.textShadow = '0 0 60px #ff0000';
+      } else if (trimmed === 'Blast off!!') {
+        lyricEl.style.fontSize = '12rem';
+        lyricEl.style.textShadow = '0 0 80px #ffff00';
+      } else {
+        lyricEl.style.fontSize = '4.5rem';
+        lyricEl.style.textShadow = '0 0 30px rgba(255,255,255,0.9)';
+      }
+
+      // Rainbow effect
       hue = (hue + 2) % 360;
       lyricEl.style.color = `hsl(${hue}, 100%, 70%)`;
+
+      // Blast off effects!
+      if (noteIndex >= 34 && !blasted) {
+        blasted = true;
+        document.body.classList.add('shake');
+        setTimeout(() => document.body.classList.remove('shake'), 3000);
+
+        // Launch the rocket
+        const rocket = document.querySelector('.bounce-rocket');
+        if (rocket) {
+          rocket.style.animation = 'none';
+          rocket.style.top = '-30%';
+          rocket.style.transform = 'translateX(-50%) scale(3) rotate(20deg)';
+          rocket.style.opacity = '0';
+        }
+
+        // Shooting stars fireworks
+        for (let i = 0; i < 30; i++) {
+          setTimeout(createShootingStar, i * 120);
+        }
+      }
 
       animationId = requestAnimationFrame(animate);
     }
@@ -248,15 +340,17 @@
       stopBtn.style.display = 'none';
       lyricEl.textContent = '';
       lyricEl.style.color = '';
+      lyricEl.style.fontSize = '4.5rem';
+      document.body.classList.remove('shake');
+      blasted = false;
 
-      // Remove extra elements
-      document.querySelectorAll('.bounce-rocket, .spin-planet').forEach(el => el.remove());
+      // Clean up dynamic elements
+      document.querySelectorAll('.bounce-rocket, .spin-planet, .star:not(.star:nth-child(-n+120))').forEach(el => el.remove());
     }
 
     startBtn.addEventListener('click', startMusic);
     stopBtn.addEventListener('click', stopMusic);
 
-    // Create stars on load
     createStars();
   </script>
 </body>
