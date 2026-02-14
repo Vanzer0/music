@@ -3,355 +3,282 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Little Rocket Ship - Full Adventure Music Video 🚀</title>
+  <title>Pengu-Tine Happy Dance Party 🎉</title>
   <style>
     body, html {
       margin: 0;
       padding: 0;
-      height: 100vh;
-      background: linear-gradient(to bottom, #000033, #000066, #000000);
+      height: 100%;
       overflow: hidden;
-      font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+      font-family: system-ui, sans-serif;
     }
-
-    #container {
-      text-align: center;
-      z-index: 10;
+    canvas {
+      display: block;
     }
-
-    h1 {
-      font-size: 4.5rem;
-      margin: 0 2rem 3rem;
-      text-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
-      transition: all 0.4s;
-    }
-
-    button {
-      font-size: 2.5rem;
-      padding: 1.5rem 3rem;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      transition: all 0.3s;
-    }
-
-    #startBtn {
-      background: #ffdd00;
-      color: #000066;
-    }
-
-    #startBtn:hover {
-      transform: scale(1.1);
-      background: #ffee55;
-    }
-
-    #stopBtn {
-      background: #ff3333;
-      color: white;
-      margin-top: 2rem;
-      display: none;
-    }
-
-    #stopBtn:hover {
-      background: #ff6666;
-    }
-
-    .star {
+    #title {
       position: absolute;
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .planet {
-      position: absolute;
-      top: 4rem;
-      right: 6rem;
-      font-size: 9rem;
-      opacity: 0.9;
-    }
-
-    .bounce-rocket {
-      position: absolute;
-      top: 15rem;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 10rem;
+      color: white;
+      font-size: 3.2rem;
+      text-shadow: 3px 3px 0 #ff6b6b, -3px -3px 0 #4ecdc4;
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
       animation: bounce 2s infinite;
-      transition: all 5s;
     }
-
-    .spin-planet {
-      position: absolute;
-      bottom: 8rem;
-      left: 8rem;
-      font-size: 9rem;
-      animation: spin 30s linear infinite;
-    }
-
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
-      50% { opacity: 1; transform: scale(1.5) rotate(15deg); }
-    }
-
     @keyframes bounce {
-      0%, 100% { transform: translateY(0) translateX(-50%); }
-      50% { transform: translateY(-50px) translateX(-50%); }
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(-15px); }
     }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translate(0, 0); }
-      10%, 30%, 50%, 70%, 90% { transform: translate(-20px, 0); }
-      20%, 40%, 60%, 80% { transform: translate(20px, 0); }
-    }
-
-    .shake {
-      animation: shake 0.8s ease-in-out;
-    }
-
-    @keyframes shoot {
-      0% {
-        left: -100px;
-        opacity: 0;
-        transform: rotate(-30deg);
-      }
-      10% { opacity: 1; }
-      100% {
-        left: calc(100% + 100px);
-        opacity: 0;
-        transform: rotate(30deg) scale(0.5);
-      }
+    #info {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      background: rgba(0,0,0,0.4);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
 
-  <div class="planet">🪐</div>
+<div id="title">Happy Animal Party! 🐧🐘🐰</div>
+<div id="info">Made with ❤️ by PENGU-TINE</div>
 
-  <div id="container">
-    <button id="startBtn">Launch the Rocket Adventure! 🚀</button>
-    <h1 id="lyric"></h1>
-    <button id="stopBtn">Stop</button>
-  </div>
+<canvas id="c"></canvas>
 
-  <script>
-    const lyrics = [
-      { text: "Little rocket zoom zoom zoom,", start: 0 },
-      { text: "Flying to the big big moon.", start: 7 },
-      { text: "Stars are twinkling all around,", start: 14 },
-      { text: "Little rocket safe and sound.", start: 21 },
-      { text: "Countdown...", start: 28 },
-      { text: "5", start: 29 },
-      { text: "4", start: 30 },
-      { text: "3", start: 31 },
-      { text: "2", start: 32 },
-      { text: "1", start: 33 },
-      { text: "Blast off!!", start: 34 },
-      { text: "Now the fun's begun! 🚀", start: 35 }
-    ];
+<script>
+// ────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
 
-    const noteFreqs = [
-      261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,
-      523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66,
-      392.00, 392.00, 440.00, 440.00, 392.00, 440.00, 493.88,
-      440.00, 440.00, 392.00, 392.00, 349.23, 349.23, 329.63,
-      587.33, 523.25, 493.88, 440.00, 392.00, 349.23, 329.63,
-      261.63, 329.63, 392.00, 440.00, 493.88, 523.25, 587.33
-    ];
+let w, h;
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
 
-    const noteDur = 0.6;
-    const starEmojis = ['⭐', '🌟', '✨', '💫', '🪐', '🌠', '🚀', '👽', '🛸'];
+// ─── Audio ───────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    let audioCtx = null;
-    let startTime = 0;
-    let animationId = null;
-    let hue = 0;
-    let blasted = false;
+// Main melody oscillator
+const osc = audioCtx.createOscillator();
+const gain = audioCtx.createGain();
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+osc.type = 'square';
+gain.gain.value = 0.12;
 
-    const lyricEl = document.getElementById('lyric');
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
+const scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C major
+let noteIdx = 0;
 
-    function createStars() {
-      for (let i = 0; i < 120; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
-        star.style.fontSize = Math.random() > 0.5 ? '3.5rem' : '2rem';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.animation = `twinkle ${3 + Math.random() * 3}s ease-in-out infinite`;
-        star.style.animationDelay = Math.random() * 5 + 's';
-        document.body.appendChild(star);
-      }
+function playMelody() {
+  osc.frequency.setValueAtTime(
+    scale[noteIdx % scale.length] * (0.98 + Math.random() * 0.04),
+    audioCtx.currentTime
+  );
+  noteIdx++;
+}
+osc.start();
+setInterval(playMelody, 320);
+
+// Kick drum simulation
+function kick() {
+  const oscK = audioCtx.createOscillator();
+  const gainK = audioCtx.createGain();
+  oscK.connect(gainK);
+  gainK.connect(audioCtx.destination);
+  oscK.type = 'sine';
+  oscK.frequency.setValueAtTime(120, audioCtx.currentTime);
+  oscK.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+  gainK.gain.setValueAtTime(0.6, audioCtx.currentTime);
+  gainK.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+  oscK.start();
+  oscK.stop(audioCtx.currentTime + 0.2);
+}
+setInterval(kick, 640);
+
+// ─── Characters ───────────────────────────────────
+const characters = [
+  // Penguin
+  {
+    x: w*0.25, y: h*0.6, color: '#000', belly: '#fff',
+    update(t) {
+      this.x = w*0.25 + Math.sin(t/400)*60;
+      this.angle = Math.sin(t/150)*0.4;
+    },
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+
+      // body
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 50, 70, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      // belly
+      ctx.fillStyle = this.belly;
+      ctx.beginPath();
+      ctx.ellipse(0, 15, 38, 55, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      // eyes
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(-18, -35, 8, 0, Math.PI*2);
+      ctx.arc( 18, -35, 8, 0, Math.PI*2);
+      ctx.fill();
+
+      // beak
+      ctx.fillStyle = '#ff9f1c';
+      ctx.beginPath();
+      ctx.moveTo(-12, -15);
+      ctx.lineTo( 12, -15);
+      ctx.lineTo(  0,  10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
     }
+  },
 
-    function createShootingStar() {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.textContent = Math.random() > 0.5 ? '🌠' : '✨';
-      star.style.fontSize = `${4 + Math.random() * 4}rem`;
-      star.style.position = 'absolute';
-      star.style.left = '-100px';
-      star.style.top = `${Math.random() * 80 + 10}%`;
-      star.style.animation = `shoot ${1 + Math.random() * 1}s linear forwards`;
-      document.body.appendChild(star);
-      setTimeout(() => star && star.remove(), 3000);
+  // Elephant
+  {
+    x: w*0.5, y: h*0.55, color: '#5c5c5c',
+    trunkOffset: 0,
+    update(t) {
+      this.y = h*0.55 + Math.sin(t/700)*12;
+      this.trunkOffset = Math.sin(t/300)*25;
+    },
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+
+      // body
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 80, 55, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      // head
+      ctx.beginPath();
+      ctx.ellipse(-45, -40, 38, 28, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      // ear
+      ctx.beginPath();
+      ctx.ellipse(-75, -35, 35, 25, Math.PI/5, 0, Math.PI*2);
+      ctx.fill();
+
+      // eye
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(-65, -45, 8, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(-65, -45, 4, 0, Math.PI*2);
+      ctx.fill();
+
+      // trunk
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-80, -25);
+      ctx.quadraticCurveTo(-110 + this.trunkOffset, -20, -95 + this.trunkOffset*0.6, 30);
+      ctx.stroke();
+
+      ctx.restore();
     }
+  },
 
-    function playNote(freq, dur, when) {
-      const osc1 = audioCtx.createOscillator();
-      osc1.type = 'sawtooth';
-      osc1.frequency.value = freq;
+  // Rabbit
+  {
+    x: w*0.75, baseY: h*0.65, jump: 0, jumpDir: 1,
+    update(t) {
+      this.jump += this.jumpDir * 5.5;
+      if (this.jump > 40 || this.jump < -5) this.jumpDir *= -1;
+    },
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.baseY - this.jump);
 
-      const osc2 = audioCtx.createOscillator();
-      osc2.type = 'sine';
-      osc2.frequency.value = freq * 2;
+      // body
+      ctx.fillStyle = '#ff99cc';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 38, 65, 0, 0, Math.PI*2);
+      ctx.fill();
 
-      const gain = audioCtx.createGain();
+      // ears
+      ctx.beginPath();
+      ctx.ellipse(-18, -75, 12, 45, Math.PI/5, 0, Math.PI*2);
+      ctx.ellipse( 18, -75, 12, 45, -Math.PI/5, 0, Math.PI*2);
+      ctx.fill();
 
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(audioCtx.destination);
+      // inner ears
+      ctx.fillStyle = '#ff6699';
+      ctx.beginPath();
+      ctx.ellipse(-18, -75, 8, 35, Math.PI/5, 0, Math.PI*2);
+      ctx.ellipse( 18, -75, 8, 35, -Math.PI/5, 0, Math.PI*2);
+      ctx.fill();
 
-      // Envelope for smoother, richer sound
-      const attack = 0.05;
-      const decay = 0.1;
-      const sustain = 0.2;
-      gain.gain.setValueAtTime(0.01, when);
-      gain.gain.linearRampToValueAtTime(0.35, when + attack);
-      gain.g minusculeToValueAtTime(sustain, when + attack + decay);
-      gain.gain.linearRampToValueAtTime(sustain, when + dur * 0.8);
-      gain.gain.exponentialRampToValueAtTime(0.01, when + dur);
+      // eyes
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(-14, -25, 7, 0, Math.PI*2);
+      ctx.arc( 14, -25, 7, 0, Math.PI*2);
+      ctx.fill();
 
-      osc1.start(when);
-      osc1.stop(when + dur + 0.2);
-      osc2.start(when);
-      osc2.stop(when + dur + 0.2);
+      ctx.restore();
     }
+  }
+];
 
-    function startMusic() {
-      if (audioCtx) return;
+// ─── Animation loop ────────────────────────────────
+let time = 0;
+function loop() {
+  time += 16;
 
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      audioCtx.resume().then(() => {
-        startTime = audioCtx.currentTime;
-        blasted = false;
+  ctx.clearRect(0, 0, w, h);
 
-        let time = audioCtx.currentTime;
-        noteFreqs.forEach(freq => {
-          playNote(freq, noteDur * 0.9, time);
-          time += noteDur;
-        });
+  // sparkling background dots
+  ctx.globalAlpha = 0.7;
+  for (let i = 0; i < 30; i++) {
+    const x = (time*0.03 + i*123) % w;
+    const y = (time*0.05 + i*77) % h;
+    ctx.fillStyle = `hsl(${(time + i*30)%360}, 100%, 65%)`;
+    ctx.beginPath();
+    ctx.arc(x, y, 4 + Math.sin(time/800 + i)*3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 
-        startBtn.style.display = 'none';
-        stopBtn.style.display = 'block';
-        lyricEl.textContent = lyrics[0].text;
+  characters.forEach(char => {
+    char.update(time);
+    char.draw();
+  });
 
-        // Add rocket and planet
-        const rocket = document.createElement('div');
-        rocket.className = 'bounce-rocket';
-        rocket.textContent = '🚀';
-        document.body.appendChild(rocket);
+  requestAnimationFrame(loop);
+}
+loop();
 
-        const spinPlanet = document.createElement('div');
-        spinPlanet.className = 'spin-planet';
-        spinPlanet.textContent = '🌍';
-        document.body.appendChild(spinPlanet);
+// Optional: stop sound after 2 minutes (kids have short attention!)
+setTimeout(() => {
+  osc.stop();
+}, 120_000);
 
-        animate();
-      });
-    }
-
-    function animate() {
-      const elapsed = audioCtx.currentTime - startTime;
-      const noteIndex = Math.floor(elapsed / noteDur);
-
-      // Update lyric
-      let currentLyric = '';
-      for (let i = lyrics.length - 1; i >= 0; i--) {
-        if (noteIndex >= lyrics[i].start) {
-          currentLyric = lyrics[i].text;
-          break;
-        }
-      }
-      lyricEl.textContent = currentLyric || 'Zoom through space! 🚀';
-
-      // Dynamic styling for countdown and blast off
-      const trimmed = currentLyric.trim();
-      if (['5','4','3','2','1'].includes(trimmed)) {
-        lyricEl.style.fontSize = '15rem';
-        lyricEl.style.textShadow = '0 0 60px #ff0000';
-      } else if (trimmed === 'Blast off!!') {
-        lyricEl.style.fontSize = '12rem';
-        lyricEl.style.textShadow = '0 0 80px #ffff00';
-      } else {
-        lyricEl.style.fontSize = '4.5rem';
-        lyricEl.style.textShadow = '0 0 30px rgba(255,255,255,0.9)';
-      }
-
-      // Rainbow effect
-      hue = (hue + 2) % 360;
-      lyricEl.style.color = `hsl(${hue}, 100%, 70%)`;
-
-      // Blast off effects!
-      if (noteIndex >= 34 && !blasted) {
-        blasted = true;
-        document.body.classList.add('shake');
-        setTimeout(() => document.body.classList.remove('shake'), 3000);
-
-        // Launch the rocket
-        const rocket = document.querySelector('.bounce-rocket');
-        if (rocket) {
-          rocket.style.animation = 'none';
-          rocket.style.top = '-30%';
-          rocket.style.transform = 'translateX(-50%) scale(3) rotate(20deg)';
-          rocket.style.opacity = '0';
-        }
-
-        // Shooting stars fireworks
-        for (let i = 0; i < 30; i++) {
-          setTimeout(createShootingStar, i * 120);
-        }
-      }
-
-      animationId = requestAnimationFrame(animate);
-    }
-
-    function stopMusic() {
-      if (animationId) cancelAnimationFrame(animationId);
-      if (audioCtx) {
-        audioCtx.close();
-        audioCtx = null;
-      }
-
-      startBtn.style.display = 'block';
-      stopBtn.style.display = 'none';
-      lyricEl.textContent = '';
-      lyricEl.style.color = '';
-      lyricEl.style.fontSize = '4.5rem';
-      document.body.classList.remove('shake');
-      blasted = false;
-
-      // Clean up dynamic elements
-      document.querySelectorAll('.bounce-rocket, .spin-planet, .star:not(.star:nth-child(-n+120))').forEach(el => el.remove());
-    }
-
-    startBtn.addEventListener('click', startMusic);
-    stopBtn.addEventListener('click', stopMusic);
-
-    createStars();
-  </script>
+</script>
 </body>
 </html>
